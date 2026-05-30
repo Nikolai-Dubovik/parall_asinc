@@ -1,0 +1,40 @@
+[
+  {
+    "url": "https://example.com",
+    "title": "Example Domain",
+    "text_length": 142,
+    "links_count": 1,
+    "links": [
+      "https://iana.org/domains/example"
+    ],
+    "images_count": 0
+  },
+  {
+    "url": "https://onliner.by",
+    "title": "Onlíner",
+    "text_length": 28740,
+    "links_count": 358,
+    "links": [
+      "https://www.onliner.by",
+      "https://catalog.onliner.by",
+      "https://tech.onliner.by/2026/05/18/igrovoj-pk-onliner-x-haff",
+      "https://onliner.by",
+      "https://people.onliner.by"
+    ],
+    "images_count": 164
+  },
+  {
+    "url": "https://pikabu.ru",
+    "title": "Горячее – самые интересные и обсуждаемые посты | Пикабу",
+    "text_length": 15018,
+    "links_count": 542,
+    "links": [
+      "https://pikabu.ru/",
+      "https://pikabu.ru/best",
+      "https://pikabu.ru/new",
+      "https://pikabu.ru/subs",
+      "https://pikabu.ru/communities"
+    ],
+    "images_count": 26
+  }
+]

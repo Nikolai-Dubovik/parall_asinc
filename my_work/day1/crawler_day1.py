@@ -57,7 +57,6 @@ async def main():
     ]
 
     await crawler.fetch_urls(urls)
-
     await crawler.close()
 
 
