@@ -1,0 +1,14 @@
+url,title,text,links,metadata,crawled_at,status_code,content_type
+https://example.com,Example Domain,Example Domain Example Domain This domain is for use in documentation examples without needing permission. Avoid use in operations. Learn more,"[""https://iana.org/domains/example""]","{""title"": ""Example Domain"", ""description"": """", ""keywords"": """"}",2026-05-31T23:26:52.969684+00:00,200,text/html
+https://httpbin.org/get,,"{
+  ""args"": {}, 
+  ""headers"": {
+    ""Accept"": ""*/*"", 
+    ""Accept-Encoding"": ""gzip, deflate"", 
+    ""Host"": ""httpbin.org"", 
+    ""User-Agent"": ""MyBot/1.0"", 
+    ""X-Amzn-Trace-Id"": ""Root=1-6a1cc3bd-4ba763d7543b02f1384cb0fe""
+  }, 
+  ""origin"": ""185.21.88.99"", 
+  ""url"": ""https://httpbin.org/get""
+}",[],"{""title"": """", ""description"": """", ""keywords"": """"}",2026-05-31T23:26:53.486167+00:00,200,text/html

@@ -1,0 +1,14 @@
+{
+  "urls": ["https://example.com"],
+  "max_concurrent": 5,
+  "max_depth": 1,
+  "rate_limit": 2.0,
+  "respect_robots": true,
+  "min_delay": 0.3,
+  "jitter": 0.2,
+  "user_agent": "MyBot/1.0",
+  "storage": {
+    "type": "json",
+    "path": "day7_data.jsonl"
+  }
+}
