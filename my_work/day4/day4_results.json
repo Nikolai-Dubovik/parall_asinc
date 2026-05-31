@@ -1,0 +1,52 @@
+{
+  "stats": {
+    "requests": 7,
+    "req_per_sec": 1.5,
+    "avg_delay": 0.359,
+    "blocked_by_robots": 0
+  },
+  "pages": [
+    {
+      "url": "https://example.com",
+      "title": "Example Domain",
+      "links_count": 1,
+      "text_length": 142
+    },
+    {
+      "url": "https://httpbin.org/",
+      "title": "httpbin.org",
+      "links_count": 4,
+      "text_length": 287
+    },
+    {
+      "url": "https://httpbin.org/forms/post",
+      "title": "",
+      "links_count": 0,
+      "text_length": 181
+    },
+    {
+      "url": "https://kennethreitz.org",
+      "title": "Kenneth Reitz",
+      "links_count": 46,
+      "text_length": 2263
+    },
+    {
+      "url": "https://iana.org/domains/example",
+      "title": "Example Domains",
+      "links_count": 23,
+      "text_length": 1233
+    },
+    {
+      "url": "https://github.com/rochacbruno/flasgger",
+      "title": "GitHub - flasgger/flasgger: Easy OpenAPI specs and Swagger UI for your Flask API · GitHub",
+      "links_count": 206,
+      "text_length": 26798
+    },
+    {
+      "url": "https://github.com/requests/httpbin",
+      "title": "GitHub - postmanlabs/httpbin: HTTP Request & Response Service, written in Python + Flask. · GitHub",
+      "links_count": 141,
+      "text_length": 4745
+    }
+  ]
+}
