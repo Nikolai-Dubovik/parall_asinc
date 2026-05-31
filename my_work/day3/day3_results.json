@@ -1,0 +1,146 @@
+[
+  {
+    "url": "https://example.com",
+    "title": "Example Domain",
+    "links_count": 1,
+    "text_length": 142
+  },
+  {
+    "url": "https://iana.org/domains/example",
+    "title": "Example Domains",
+    "links_count": 23,
+    "text_length": 1233
+  },
+  {
+    "url": "https://iana.org/",
+    "title": "Internet Assigned Numbers Authority",
+    "links_count": 21,
+    "text_length": 1316
+  },
+  {
+    "url": "https://iana.org/protocols",
+    "title": "Protocol Registries",
+    "links_count": 4186,
+    "text_length": 294315
+  },
+  {
+    "url": "https://iana.org/domains",
+    "title": "Domain Name Services",
+    "links_count": 33,
+    "text_length": 2249
+  },
+  {
+    "url": "https://iana.org/numbers",
+    "title": "Number Resources",
+    "links_count": 71,
+    "text_length": 4193
+  },
+  {
+    "url": "https://iana.org/about",
+    "title": "About us",
+    "links_count": 23,
+    "text_length": 3269
+  },
+  {
+    "url": "https://iana.org/domains/reserved",
+    "title": "IANA-managed Reserved Domains",
+    "links_count": 50,
+    "text_length": 2747
+  },
+  {
+    "url": "https://iana.org/go/rfc6761",
+    "title": "RFC 6761 - Special-Use Domain Names",
+    "links_count": 51,
+    "text_length": 30257
+  },
+  {
+    "url": "https://iana.org/domains/root",
+    "title": "Root Zone Management",
+    "links_count": 33,
+    "text_length": 2169
+  },
+  {
+    "url": "https://iana.org/go/rfc2606",
+    "title": "RFC 2606 - Reserved Top Level DNS Names",
+    "links_count": 27,
+    "text_length": 10788
+  },
+  {
+    "url": "https://iana.org/domains/arpa",
+    "title": ".ARPA Domain",
+    "links_count": 51,
+    "text_length": 3147
+  },
+  {
+    "url": "https://iana.org/domains/int",
+    "title": "Intergovernmental Treaty (.INT) Domains",
+    "links_count": 33,
+    "text_length": 1957
+  },
+  {
+    "url": "https://iana.org/abuse",
+    "title": "Abuse Issues",
+    "links_count": 33,
+    "text_length": 3050
+  },
+  {
+    "url": "https://iana.org/time-zones",
+    "title": "Time Zone Database",
+    "links_count": 32,
+    "text_length": 2033
+  },
+  {
+    "url": "https://iana.org/performance",
+    "title": "Performance",
+    "links_count": 29,
+    "text_length": 1826
+  },
+  {
+    "url": "https://iana.org/news",
+    "title": "News",
+    "links_count": 123,
+    "text_length": 34102
+  },
+  {
+    "url": "https://iana.org/about/excellence",
+    "title": "Business Excellence and Quality Management",
+    "links_count": 23,
+    "text_length": 2167
+  },
+  {
+    "url": "https://iana.org/archive",
+    "title": "Archive",
+    "links_count": 26,
+    "text_length": 976
+  },
+  {
+    "url": "https://iana.org/contact",
+    "title": "Contact Us",
+    "links_count": 21,
+    "text_length": 860
+  },
+  {
+    "url": "https://www.icann.org/privacy/policy",
+    "title": "Privacy Policy",
+    "links_count": 77,
+    "text_length": 21072
+  },
+  {
+    "url": "https://www.icann.org/privacy/tos",
+    "title": "Terms of Service",
+    "links_count": 65,
+    "text_length": 26444
+  },
+  {
+    "url": "https://pti.icann.org",
+    "title": "Public Technical Identifiers (PTI)",
+    "links_count": 0,
+    "text_length": 110
+  },
+  {
+    "url": "https://iana.org/domains/idn-tables",
+    "title": "Repository of IDN Practices",
+    "links_count": 9904,
+    "text_length": 695096
+  }
+]

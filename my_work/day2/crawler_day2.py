@@ -1,13 +1,17 @@
 import asyncio
 import json
 import logging
+import sys
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
-import aiohttp
 from bs4 import BeautifulSoup
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "day1"))
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+from crawler_day1 import AsyncCrawler
+
+
 log = logging.getLogger("crawler")
 
 
@@ -106,39 +110,10 @@ class HTMLParser:
         return lists
 
 
-class AsyncCrawler:
+class ParsingCrawler(AsyncCrawler):
     def __init__(self, max_concurrent: int = 10):
-        timeout = aiohttp.ClientTimeout(connect=5, total=10)
-        connector = aiohttp.TCPConnector(limit=max_concurrent, ssl=False)
-        self.session = aiohttp.ClientSession(timeout=timeout, connector=connector)
-        self.sem = asyncio.Semaphore(max_concurrent)
+        super().__init__(max_concurrent=max_concurrent)
         self.parser = HTMLParser()
-        self.statuses: dict[str, int | str] = {}
-
-    async def fetch_url(self, url: str) -> str:
-        async with self.sem:
-            log.info("▶️ начало загрузки %s", url)
-            try:
-                async with self.session.get(url) as resp:
-                    resp.raise_for_status()
-                    text = await resp.text()
-                    self.statuses[url] = resp.status
-                    log.info("✅ успешное завершение %s", url)
-                    return text
-            except asyncio.TimeoutError as e:
-                self.statuses[url] = "timeout"
-                log.warning("⚠️ ошибка %s: %s", type(e).__name__, url)
-            except aiohttp.ClientResponseError as e:
-                self.statuses[url] = e.status
-                log.warning("⚠️ ошибка %s: %s", type(e).__name__, url)
-            except aiohttp.ClientError as e:
-                self.statuses[url] = type(e).__name__
-                log.warning("⚠️ ошибка %s: %s", type(e).__name__, url)
-            return ""
-
-    async def fetch_urls(self, urls: list[str]) -> dict[str, str]:
-        results = await asyncio.gather(*(self.fetch_url(u) for u in urls))
-        return dict(zip(urls, results))
 
     async def fetch_and_parse(self, url: str) -> dict:
         html = await self.fetch_url(url)
@@ -155,12 +130,9 @@ class AsyncCrawler:
             "headings": parsed["headings"],
         }
 
-    async def close(self):
-        await self.session.close()
-
 
 async def main():
-    crawler = AsyncCrawler(max_concurrent=5)
+    crawler = ParsingCrawler(max_concurrent=5)
     urls = [
         "https://example.com",
         "https://onliner.by",
@@ -183,9 +155,10 @@ async def main():
         log.info("📊 %s — текст %d симв., ссылок %d, картинок %d",
                  r["url"], stats["text_length"], stats["links_count"], stats["images_count"])
 
-    with open("day2_results.json", "w", encoding="utf-8") as f:
+    out_path = Path(__file__).resolve().parent / "day2_results.json"
+    with open(out_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
-    log.info("💾 сохранено в day2_results.json")
+    log.info("💾 сохранено в %s", out_path)
 
     await crawler.close()
 
