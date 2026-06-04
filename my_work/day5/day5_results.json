@@ -1,19 +1,18 @@
 {
   "retry_stats": {
     "errors_by_type": {
-      "TransientError": 3,
       "PermanentError": 1
     },
-    "retries": 2,
+    "retries": 0,
     "successful_retries": 0,
-    "permanent_failures": [
-      "https://httpbin.org/status/503"
-    ]
+    "avg_retry_wait": 0.0,
+    "permanent_failures": []
   },
   "statuses": {
-    "https://example.com": "200",
-    "https://httpbin.org/status/503": "503",
-    "https://httpbin.org/get": "200",
-    "https://httpbin.org/status/404": "404"
+    "https://t-j.ru/": "401",
+    "https://pikabu.ru": "200",
+    "https://edvibe.com/": "200",
+    "https://onliner.by": "200",
+    "https://nebdeti.ru/": "200"
   }
 }

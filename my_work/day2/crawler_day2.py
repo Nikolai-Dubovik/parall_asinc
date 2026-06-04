@@ -5,46 +5,88 @@ import sys
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
+import aiohttp
 from bs4 import BeautifulSoup
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "day1"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from sample_urls import DAY1_URLS
 
-from crawler_day1 import AsyncCrawler
-
-
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 log = logging.getLogger("crawler")
+
+
+class AsyncCrawler:
+    def __init__(self, max_concurrent: int = 10):
+        timeout = aiohttp.ClientTimeout(connect=5, sock_read=10, total=30)
+        connector = aiohttp.TCPConnector(limit=max_concurrent, ssl=False)
+        # trust_env=True — читать прокси из HTTP(S)_PROXY и креды из .netrc;
+        # cookies между запросами хранит встроенный cookie_jar сессии
+        self.session = aiohttp.ClientSession(
+            timeout=timeout, connector=connector, trust_env=True
+        )
+        self.parser = HTMLParser()
+
+    async def fetch_url(self, url: str) -> str:
+        log.info("▶️ начало загрузки %s", url)
+        try:
+            async with self.session.get(url) as resp:
+                resp.raise_for_status()
+                text = await resp.text()
+                log.info("✅ успешное завершение %s", url)
+                return text
+        except asyncio.TimeoutError as e:
+            log.warning("⚠️ ошибка %s: %s", type(e).__name__, url)
+        except aiohttp.ClientResponseError as e:
+            log.warning("⚠️ ошибка %s (HTTP %s): %s", type(e).__name__, e.status, url)
+        except aiohttp.ClientError as e:
+            log.warning("⚠️ ошибка %s: %s", type(e).__name__, url)
+        return ""
+
+    async def fetch_and_parse(self, url: str) -> dict:
+        html = await self.fetch_url(url)
+        return await self.parser.parse_html(html, url)
+
+    async def close(self):
+        await self.session.close()
 
 
 class HTMLParser:
     async def parse_html(self, html: str, url: str) -> dict:
+        # BeautifulSoup — CPU-bound и блокирует event loop, поэтому выносим в пул потоков
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._parse_sync, html, url)
+
+    def _parse_sync(self, html: str, url: str) -> dict:
+        # пустой каркас результата — возвращается целиком или частично при ошибках
+        result = {
+            "url": url, "title": "", "text": "", "links": [],
+            "metadata": {}, "images": [], "headings": {},
+            "tables": [], "lists": [],
+        }
         try:
             soup = BeautifulSoup(html, "lxml")
         except Exception as e:
-            log.warning("⚠️ ошибка парсинга %s: %s", url, e)
-            return {
-                "url": url,
-                "title": "",
-                "text": "",
-                "links": [],
-                "metadata": {},
-                "images": [],
-                "headings": {"h1": [], "h2": [], "h3": []},
-                "tables": [],
-                "lists": [],
-            }
+            log.warning("⚠️ не удалось разобрать HTML %s: %s", url, e)
+            return result
 
-        metadata = self.extract_metadata(soup)
-        return {
-            "url": url,
-            "title": metadata.get("title", ""),
-            "text": self.extract_text(soup),
-            "links": self.extract_links(soup, url),
-            "metadata": metadata,
-            "images": self.extract_images(soup, url),
-            "headings": self.extract_headings(soup),
-            "tables": self.extract_tables(soup),
-            "lists": self.extract_lists(soup),
-        }
+        def safe(name, fn):
+            """Вызвать извлекатель; при ошибке залогировать и вернуть значение по умолчанию."""
+            try:
+                return fn()
+            except Exception as exc:
+                log.warning("⚠️ ошибка извлечения %s для %s: %s", name, url, exc)
+                return result[name]
+
+        metadata = safe("metadata", lambda: self.extract_metadata(soup))
+        result["metadata"] = metadata
+        result["title"] = metadata.get("title", "")
+        result["text"] = safe("text", lambda: self.extract_text(soup))
+        result["links"] = safe("links", lambda: self.extract_links(soup, url))
+        result["images"] = safe("images", lambda: self.extract_images(soup, url))
+        result["headings"] = safe("headings", lambda: self.extract_headings(soup))
+        result["tables"] = safe("tables", lambda: self.extract_tables(soup))
+        result["lists"] = safe("lists", lambda: self.extract_lists(soup))
+        return result
 
     def extract_links(self, soup: BeautifulSoup, base_url: str) -> list[str]:
         links = []
@@ -57,9 +99,7 @@ class HTMLParser:
 
     def extract_text(self, soup: BeautifulSoup, selector: str = None) -> str:
         target = soup.select_one(selector) if selector else soup
-        if target is None:
-            return ""
-        return target.get_text(separator=" ", strip=True)
+        return target.get_text(separator=" ", strip=True) if target else ""
 
     def extract_metadata(self, soup: BeautifulSoup) -> dict:
         meta = {"title": "", "description": "", "keywords": ""}
@@ -72,16 +112,11 @@ class HTMLParser:
         return meta
 
     def extract_images(self, soup: BeautifulSoup, base_url: str) -> list[dict]:
-        images = []
-        for img in soup.find_all("img"):
-            src = img.get("src")
-            if not src:
-                continue
-            images.append({
-                "src": urljoin(base_url, src.strip()),
-                "alt": (img.get("alt") or "").strip(),
-            })
-        return images
+        return [
+            {"src": urljoin(base_url, img["src"].strip()),
+             "alt": (img.get("alt") or "").strip()}
+            for img in soup.find_all("img") if img.get("src")
+        ]
 
     def extract_headings(self, soup: BeautifulSoup) -> dict:
         return {
@@ -92,11 +127,11 @@ class HTMLParser:
     def extract_tables(self, soup: BeautifulSoup) -> list[list[list[str]]]:
         tables = []
         for table in soup.find_all("table"):
-            rows = []
-            for tr in table.find_all("tr"):
-                cells = [c.get_text(strip=True) for c in tr.find_all(["th", "td"])]
-                if cells:
-                    rows.append(cells)
+            rows = [
+                [c.get_text(strip=True) for c in tr.find_all(["th", "td"])]
+                for tr in table.find_all("tr")
+            ]
+            rows = [r for r in rows if r]
             if rows:
                 tables.append(rows)
         return tables
@@ -110,33 +145,14 @@ class HTMLParser:
         return lists
 
 
-class ParsingCrawler(AsyncCrawler):
-    def __init__(self, max_concurrent: int = 10):
-        super().__init__(max_concurrent=max_concurrent)
-        self.parser = HTMLParser()
-
-    async def fetch_and_parse(self, url: str) -> dict:
-        html = await self.fetch_url(url)
-        if not html:
-            return {"url": url, "title": "", "text": "", "links": [], "metadata": {}}
-        parsed = await self.parser.parse_html(html, url)
-        return {
-            "url": parsed["url"],
-            "title": parsed["title"],
-            "text": parsed["text"],
-            "links": parsed["links"],
-            "metadata": parsed["metadata"],
-            "images": parsed["images"],
-            "headings": parsed["headings"],
-        }
-
-
 async def main():
-    crawler = ParsingCrawler(max_concurrent=5)
+    crawler = AsyncCrawler(max_concurrent=5)
     urls = [
-        "https://example.com",
         "https://onliner.by",
         "https://pikabu.ru",
+        "https://edvibssse.com/",
+        "https://nebdeti.ru/",
+        "https://mangabuff.ru/"
     ]
 
     results = await asyncio.gather(*(crawler.fetch_and_parse(u) for u in urls))
@@ -149,7 +165,7 @@ async def main():
             "text_length": len(r["text"]),
             "links_count": len(r["links"]),
             "links": r["links"][:5],
-            "images_count": len(r.get("images", [])),
+            "images_count": len(r["images"]),
         }
         summary.append(stats)
         log.info("📊 %s — текст %d симв., ссылок %d, картинок %d",

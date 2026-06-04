@@ -1,19 +1,9 @@
 [
   {
-    "url": "https://example.com",
-    "title": "Example Domain",
-    "text_length": 142,
-    "links_count": 1,
-    "links": [
-      "https://iana.org/domains/example"
-    ],
-    "images_count": 0
-  },
-  {
     "url": "https://onliner.by",
     "title": "Onlíner",
-    "text_length": 28760,
-    "links_count": 358,
+    "text_length": 27680,
+    "links_count": 371,
     "links": [
       "https://www.onliner.by",
       "https://catalog.onliner.by",
@@ -21,20 +11,56 @@
       "https://onliner.by",
       "https://people.onliner.by"
     ],
-    "images_count": 164
+    "images_count": 169
   },
   {
     "url": "https://pikabu.ru",
     "title": "Горячее – самые интересные и обсуждаемые посты | Пикабу",
-    "text_length": 15016,
-    "links_count": 542,
+    "text_length": 11150,
+    "links_count": 539,
     "links": [
+      "https://yandex.ru/adfox/260477/goLink?p1=cnpjl&p2=frfe&p5=bjcehu&pr=%random%",
       "https://pikabu.ru/",
       "https://pikabu.ru/best",
       "https://pikabu.ru/new",
-      "https://pikabu.ru/subs",
-      "https://pikabu.ru/communities"
+      "https://pikabu.ru/subs"
     ],
-    "images_count": 26
+    "images_count": 28
+  },
+  {
+    "url": "https://edvibssse.com/",
+    "title": "",
+    "text_length": 0,
+    "links_count": 0,
+    "links": [],
+    "images_count": 0
+  },
+  {
+    "url": "https://nebdeti.ru/",
+    "title": "НЭБ.Дети - детская литература от истоков до бесконечности",
+    "text_length": 3315,
+    "links_count": 40,
+    "links": [
+      "https://nebdeti.ru/",
+      "https://vz.nebdeti.ru/",
+      "https://nebdeti.ru/authorization",
+      "https://nebdeti.ru/registration-1",
+      "https://nebdeti.ru/books"
+    ],
+    "images_count": 43
+  },
+  {
+    "url": "https://mangabuff.ru/",
+    "title": "Манга, манхва на русском, Слив манги для вас",
+    "text_length": 9524,
+    "links_count": 210,
+    "links": [
+      "https://mangabuff.ru/",
+      "https://mangabuff.ru/manga",
+      "https://mangabuff.ru/manga/top",
+      "https://mangabuff.ru/genres",
+      "https://mangabuff.ru/chat"
+    ],
+    "images_count": 86
   }
 ]

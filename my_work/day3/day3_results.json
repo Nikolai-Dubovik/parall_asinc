@@ -1,146 +1,177 @@
 [
   {
-    "url": "https://example.com",
-    "title": "Example Domain",
+    "url": "https://pikabu.ru",
+    "title": "Горячее – самые интересные и обсуждаемые посты | Пикабу",
+    "depth": 0,
+    "links_count": 539,
+    "text_length": 11149
+  },
+  {
+    "url": "https://pikabu.ru/best",
+    "title": "Лучшие посты за сегодня | Пикабу",
+    "depth": 1,
+    "links_count": 557,
+    "text_length": 13614
+  },
+  {
+    "url": "https://books.toscrape.com/",
+    "title": "All products | Books to Scrape - Sandbox",
+    "depth": 0,
+    "links_count": 73,
+    "text_length": 1851
+  },
+  {
+    "url": "https://pikabu.ru/new",
+    "title": "Свежие посты | Пикабу",
+    "depth": 1,
+    "links_count": 553,
+    "text_length": 21762
+  },
+  {
+    "url": "https://onliner.by/",
+    "title": "Onlíner",
+    "depth": 0,
+    "links_count": 370,
+    "text_length": 27679
+  },
+  {
+    "url": "https://pikabu.ru/subs",
+    "title": "Лента подписок | Пикабу",
+    "depth": 1,
+    "links_count": 450,
+    "text_length": 8196
+  },
+  {
+    "url": "https://pikabu.ru/",
+    "title": "Горячее – самые интересные и обсуждаемые посты | Пикабу",
+    "depth": 1,
+    "links_count": 539,
+    "text_length": 11156
+  },
+  {
+    "url": "https://pikabu.ru/communities",
+    "title": "Сообщества  | Пикабу",
+    "depth": 1,
+    "links_count": 752,
+    "text_length": 14455
+  },
+  {
+    "url": "https://pikabu.ru/companies",
+    "title": "Блоги | Пикабу",
+    "depth": 1,
+    "links_count": 605,
+    "text_length": 82871
+  },
+  {
+    "url": "https://pikabu.ru/themes",
+    "title": "Темы | Пикабу",
+    "depth": 1,
+    "links_count": 450,
+    "text_length": 9406
+  },
+  {
+    "url": "https://pikabu.ru/add",
+    "title": "Мы знакомы? | Пикабу",
+    "depth": 1,
+    "links_count": 449,
+    "text_length": 7933
+  },
+  {
+    "url": "https://pikabu.ru/information/welcome",
+    "title": "Приветствуем! | Пикабу",
+    "depth": 1,
+    "links_count": 451,
+    "text_length": 8099
+  },
+  {
+    "url": "https://pikabu.ru/oauth.php?type=ya",
+    "title": "Log in",
+    "depth": 1,
     "links_count": 1,
-    "text_length": 142
+    "text_length": 175
   },
   {
-    "url": "https://iana.org/domains/example",
-    "title": "Example Domains",
-    "links_count": 23,
-    "text_length": 1233
+    "url": "https://pikabu.ru/information/consent",
+    "title": "Согласие на обработку ПД при регистрации | Пикабу",
+    "depth": 1,
+    "links_count": 450,
+    "text_length": 10335
   },
   {
-    "url": "https://iana.org/",
-    "title": "Internet Assigned Numbers Authority",
-    "links_count": 21,
-    "text_length": 1316
-  },
-  {
-    "url": "https://iana.org/protocols",
-    "title": "Protocol Registries",
-    "links_count": 4186,
-    "text_length": 294315
-  },
-  {
-    "url": "https://iana.org/domains",
-    "title": "Domain Name Services",
-    "links_count": 33,
-    "text_length": 2249
-  },
-  {
-    "url": "https://iana.org/numbers",
-    "title": "Number Resources",
-    "links_count": 71,
-    "text_length": 4193
-  },
-  {
-    "url": "https://iana.org/about",
-    "title": "About us",
-    "links_count": 23,
-    "text_length": 3269
-  },
-  {
-    "url": "https://iana.org/domains/reserved",
-    "title": "IANA-managed Reserved Domains",
-    "links_count": 50,
-    "text_length": 2747
-  },
-  {
-    "url": "https://iana.org/go/rfc6761",
-    "title": "RFC 6761 - Special-Use Domain Names",
-    "links_count": 51,
-    "text_length": 30257
-  },
-  {
-    "url": "https://iana.org/domains/root",
-    "title": "Root Zone Management",
-    "links_count": 33,
-    "text_length": 2169
-  },
-  {
-    "url": "https://iana.org/go/rfc2606",
-    "title": "RFC 2606 - Reserved Top Level DNS Names",
-    "links_count": 27,
-    "text_length": 10788
-  },
-  {
-    "url": "https://iana.org/domains/arpa",
-    "title": ".ARPA Domain",
-    "links_count": 51,
-    "text_length": 3147
-  },
-  {
-    "url": "https://iana.org/domains/int",
-    "title": "Intergovernmental Treaty (.INT) Domains",
-    "links_count": 33,
-    "text_length": 1957
-  },
-  {
-    "url": "https://iana.org/abuse",
-    "title": "Abuse Issues",
-    "links_count": 33,
-    "text_length": 3050
-  },
-  {
-    "url": "https://iana.org/time-zones",
-    "title": "Time Zone Database",
-    "links_count": 32,
-    "text_length": 2033
-  },
-  {
-    "url": "https://iana.org/performance",
-    "title": "Performance",
-    "links_count": 29,
-    "text_length": 1826
-  },
-  {
-    "url": "https://iana.org/news",
-    "title": "News",
-    "links_count": 123,
-    "text_length": 34102
-  },
-  {
-    "url": "https://iana.org/about/excellence",
-    "title": "Business Excellence and Quality Management",
-    "links_count": 23,
-    "text_length": 2167
-  },
-  {
-    "url": "https://iana.org/archive",
-    "title": "Archive",
-    "links_count": 26,
-    "text_length": 976
-  },
-  {
-    "url": "https://iana.org/contact",
-    "title": "Contact Us",
-    "links_count": 21,
-    "text_length": 860
-  },
-  {
-    "url": "https://www.icann.org/privacy/policy",
-    "title": "Privacy Policy",
-    "links_count": 77,
-    "text_length": 21072
-  },
-  {
-    "url": "https://www.icann.org/privacy/tos",
-    "title": "Terms of Service",
-    "links_count": 65,
-    "text_length": 26444
-  },
-  {
-    "url": "https://pti.icann.org",
-    "title": "Public Technical Identifiers (PTI)",
+    "url": "https://pikabu.ru/oauth.php?type=vk",
+    "title": "VK ID",
+    "depth": 1,
     "links_count": 0,
-    "text_length": 110
+    "text_length": 86
   },
   {
-    "url": "https://iana.org/domains/idn-tables",
-    "title": "Repository of IDN Practices",
-    "links_count": 9904,
-    "text_length": 695096
+    "url": "https://pikabu.ru/@truekpru",
+    "title": "truekpru — все посты пользователя по времени",
+    "depth": 1,
+    "links_count": 521,
+    "text_length": 34827
+  },
+  {
+    "url": "http://pikabu.ru/go/sub_email",
+    "title": "Согласие на получение рекламных и информационных сообщений | Пикабу",
+    "depth": 1,
+    "links_count": 451,
+    "text_length": 10074
+  },
+  {
+    "url": "https://pikabu.ru/@Animalrescueed",
+    "title": "Animalrescueed — все посты пользователя по времени",
+    "depth": 1,
+    "links_count": 563,
+    "text_length": 15916
+  },
+  {
+    "url": "https://pikabu.ru/@trenchar",
+    "title": "trenchar — все посты пользователя по времени",
+    "depth": 1,
+    "links_count": 531,
+    "text_length": 19619
+  },
+  {
+    "url": "https://pikabu.ru/top/authors",
+    "title": "Топ авторов",
+    "depth": 1,
+    "links_count": 537,
+    "text_length": 10540
+  },
+  {
+    "url": "https://pikabu.ru/crew",
+    "title": "Команда Пикабу | Пикабу",
+    "depth": 1,
+    "links_count": 481,
+    "text_length": 8788
+  },
+  {
+    "url": "https://pikabu.ru/applications",
+    "title": "Приложение Пикабу скачать, как установить приложение Пикабу на Android и iPhone | Пикабу",
+    "depth": 1,
+    "links_count": 422,
+    "text_length": 8033
+  },
+  {
+    "url": "https://pikabu.ru/go/help_main",
+    "title": "Обращение в поддержку | Пикабу",
+    "depth": 1,
+    "links_count": 459,
+    "text_length": 9137
+  },
+  {
+    "url": "https://pikabu.ru/go/rules",
+    "title": "Правила сообщества | Пикабу",
+    "depth": 1,
+    "links_count": 495,
+    "text_length": 24643
+  },
+  {
+    "url": "https://pikabu.ru/go/rules-sn",
+    "title": "Правила социальной сети | Пикабу",
+    "depth": 1,
+    "links_count": 459,
+    "text_length": 28397
   }
 ]

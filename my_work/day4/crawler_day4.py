@@ -10,9 +10,11 @@ from urllib.parse import urljoin, urlparse
 
 import aiohttp
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "day3"))
 
 from crawler_day3 import QueueCrawler
+from sample_urls import DAY1_URLS
 
 
 log = logging.getLogger("crawler")
@@ -26,19 +28,28 @@ class RateLimiter:
         self.locks: dict[str, asyncio.Lock] = {}
 
     def _key(self, domain: str | None) -> str:
-        return domain or "" if self.per_domain else "_global"
+        if not self.per_domain:
+            return "_global"
+        return domain or ""
 
-    async def acquire(self, domain: str | None = None) -> None:
-        if self.interval <= 0:
-            return
+    async def acquire(self, domain: str | None = None, min_interval: float = 0.0) -> float:
+        """Ждёт max(interval, min_interval) с прошлого запроса к домену.
+
+        Так min_delay из robots/настроек складывается в единый интервал лимитера —
+        без отдельного sleep. Возвращает фактическое время ожидания (для статистики).
+        """
+        interval = max(self.interval, min_interval)
+        if interval <= 0:
+            return 0.0
         key = self._key(domain)
         lock = self.locks.setdefault(key, asyncio.Lock())
         async with lock:
             now = time.monotonic()
-            wait = self.interval - (now - self.last_ts.get(key, 0.0))
+            wait = interval - (now - self.last_ts.get(key, 0.0))
             if wait > 0:
                 await asyncio.sleep(wait)
             self.last_ts[key] = time.monotonic()
+            return wait if wait > 0 else 0.0
 
 
 class RobotsParser:
@@ -46,28 +57,34 @@ class RobotsParser:
         self.session = session
         self.cache: dict[str, urllib.robotparser.RobotFileParser] = {}
 
-    def _base(self, url: str) -> str:
+    @staticmethod
+    def _base(url: str) -> str:
         p = urlparse(url)
         return f"{p.scheme}://{p.netloc}"
 
-    async def fetch_robots(self, base_url: str) -> urllib.robotparser.RobotFileParser:
-        if base_url in self.cache:
-            return self.cache[base_url]
-        rp = urllib.robotparser.RobotFileParser()
-        robots_url = urljoin(base_url + "/", "/robots.txt")
-        rp.set_url(robots_url)
-        try:
-            async with self.session.get(robots_url) as resp:
-                if resp.status == 200:
-                    text = await resp.text()
-                    rp.parse(text.splitlines())
-                else:
-                    rp.parse([])
-        except Exception as e:
-            log.warning("⚠️ не удалось загрузить robots.txt %s: %s", robots_url, e)
-            rp.parse([])
-        self.cache[base_url] = rp
-        return rp
+    async def fetch_robots(self, base_url: str) -> dict:
+        """Загрузить и закэшировать robots.txt домена. Возвращает краткую сводку (dict)."""
+        if base_url not in self.cache:
+            rp = urllib.robotparser.RobotFileParser()
+            robots_url = urljoin(base_url + "/", "/robots.txt")
+            rp.set_url(robots_url)
+            try:
+                async with self.session.get(robots_url) as resp:
+                    if resp.status == 200:
+                        text = await resp.text()
+                        rp.parse(text.splitlines())
+                    else:
+                        rp.parse([])
+            except Exception as e:
+                log.warning("⚠️ не удалось загрузить robots.txt %s: %s", robots_url, e)
+                rp.parse([])
+            self.cache[base_url] = rp
+        rp = self.cache[base_url]
+        return {
+            "base_url": base_url,
+            "can_fetch_root": rp.can_fetch("*", base_url + "/"),
+            "crawl_delay": float(rp.crawl_delay("*") or 0.0),
+        }
 
     def can_fetch(self, url: str, user_agent: str = "*") -> bool:
         rp = self.cache.get(self._base(url))
@@ -88,22 +105,38 @@ class PoliteCrawler(QueueCrawler):
                  requests_per_second: float = 1.0, respect_robots: bool = True,
                  min_delay: float = 0.0, jitter: float = 0.0,
                  user_agent: str = "MyBot/1.0",
+                 user_agents: list[str] | None = None,
                  per_domain_limit: int = 3):
         super().__init__(max_concurrent=max_concurrent, max_depth=max_depth,
                          per_domain_limit=per_domain_limit)
         self.user_agent = user_agent
+        # опциональная ротация User-Agent: по умолчанию список из одного user_agent
+        self.user_agents = user_agents or [user_agent]
+        self._ua_index = 0
         self.respect_robots = respect_robots
         self.min_delay = min_delay
         self.jitter = jitter
         self.rate_limiter = RateLimiter(requests_per_second, per_domain=True)
         self.robots = RobotsParser(self.session)
         self.blocked_by_robots = 0
+        self.statuses: dict[str, object] = {}
         self.request_count = 0
         self.total_delay = 0.0
         self.delay_count = 0
         self.started_at: float | None = None
 
-    async def fetch_url(self, url: str) -> str:
+    def _next_user_agent(self) -> str:
+        """Следующий User-Agent (ротация по кругу, если задан список из нескольких)."""
+        ua = self.user_agents[self._ua_index % len(self.user_agents)]
+        self._ua_index += 1
+        return ua
+
+    async def _polite_preamble(self, url: str) -> bool:
+        """robots.txt + rate limiting + задержки перед запросом.
+
+        Возвращает False, если URL заблокирован robots.txt (запрос делать нельзя).
+        Переиспользуется наследниками (день 5) перед своей логикой загрузки.
+        """
         if self.started_at is None:
             self.started_at = time.monotonic()
 
@@ -117,44 +150,53 @@ class PoliteCrawler(QueueCrawler):
                 self.blocked_by_robots += 1
                 self.statuses[url] = "robots_blocked"
                 log.warning("🚫 robots.txt блокирует %s", url)
-                return ""
+                return False
 
         crawl_delay = (
             self.robots.get_crawl_delay(url, self.user_agent)
             if self.respect_robots else 0.0
         )
-        await self.rate_limiter.acquire(domain)
-
-        delay = max(self.min_delay, crawl_delay)
+        # единый интервал: max(лимитер, min_delay, crawl_delay); jitter — рандомизация поверх
+        waited = await self.rate_limiter.acquire(
+            domain, min_interval=max(self.min_delay, crawl_delay)
+        )
         if self.jitter > 0:
-            delay += random.uniform(0, self.jitter)
-        if delay > 0:
-            await asyncio.sleep(delay)
-            self.total_delay += delay
+            j = random.uniform(0, self.jitter)
+            await asyncio.sleep(j)
+            waited += j
+        if waited > 0:
+            self.total_delay += waited
             self.delay_count += 1
+        return True
 
-        async with self.sem:
-            log.info("▶️ начало загрузки %s", url)
-            try:
-                async with self.session.get(
-                    url, headers={"User-Agent": self.user_agent}
-                ) as resp:
-                    resp.raise_for_status()
-                    text = await resp.text()
-                    self.statuses[url] = resp.status
-                    self.request_count += 1
-                    log.info("✅ успешное завершение %s", url)
-                    return text
-            except asyncio.TimeoutError:
-                self.statuses[url] = "timeout"
-                log.warning("⚠️ timeout %s", url)
-            except aiohttp.ClientResponseError as e:
-                self.statuses[url] = e.status
-                log.warning("⚠️ %s %s", e.status, url)
-            except aiohttp.ClientError as e:
-                self.statuses[url] = type(e).__name__
-                log.warning("⚠️ %s %s", type(e).__name__, url)
+    async def _do_get(self, url: str) -> str:
+        """Один GET-запрос с обработкой ошибок (без повторов)."""
+        log.info("▶️ начало загрузки %s", url)
+        try:
+            async with self.session.get(
+                url, headers={"User-Agent": self._next_user_agent()}
+            ) as resp:
+                resp.raise_for_status()
+                text = await resp.text()
+                self.statuses[url] = resp.status
+                self.request_count += 1
+                log.info("✅ успешное завершение %s", url)
+                return text
+        except asyncio.TimeoutError:
+            self.statuses[url] = "timeout"
+            log.warning("⚠️ timeout %s", url)
+        except aiohttp.ClientResponseError as e:
+            self.statuses[url] = e.status
+            log.warning("⚠️ %s %s", e.status, url)
+        except aiohttp.ClientError as e:
+            self.statuses[url] = type(e).__name__
+            log.warning("⚠️ %s %s", type(e).__name__, url)
+        return ""
+
+    async def fetch_url(self, url: str) -> str:
+        if not await self._polite_preamble(url):
             return ""
+        return await self._do_get(url)
 
     def stats(self) -> dict:
         elapsed = (time.monotonic() - self.started_at) if self.started_at else 0.0
@@ -181,7 +223,7 @@ async def main():
     )
     try:
         results = await crawler.crawl(
-            start_urls=["https://example.com", "https://httpbin.org/"],
+            start_urls=DAY1_URLS,
             max_pages=10,
             same_domain_only=False,
         )

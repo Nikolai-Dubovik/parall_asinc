@@ -10,6 +10,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from urllib.parse import urlparse
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "day6"))
 
 from crawler_day6 import (
@@ -18,6 +19,7 @@ from crawler_day6 import (
     SQLiteStorage,
     StorageCrawler,
 )
+from sample_urls import DAY1_URLS
 
 
 log = logging.getLogger("crawler")
@@ -109,7 +111,7 @@ class AdvancedCrawler(StorageCrawler):
         super().__init__(*args, **kwargs)
         self.stats = CrawlerStats()
         self.sitemap = SitemapParser(self.session)
-        self._cfg: dict = {}
+        self.config: dict = {}
 
     @classmethod
     def from_config(cls, path: str | Path) -> "AdvancedCrawler":
@@ -127,28 +129,51 @@ class AdvancedCrawler(StorageCrawler):
             user_agent=cfg.get("user_agent", "MyBot/1.0"),
             storage=storage,
         )
-        crawler._cfg = cfg
+        crawler.config = cfg
         return crawler
 
-    async def _process_url(self, url: str, depth: int,
-                           start_domains: set[str], opts: dict,
-                           max_pages: int) -> None:
-        await super()._process_url(url, depth, start_domains, opts, max_pages)
+    async def _progress(self, start: float):
+        # расширенный прогресс: ASCII прогресс-бар, процент и оценка оставшегося времени (ETA)
+        try:
+            while True:
+                await asyncio.sleep(2.0)
+                stats = self.queue.get_stats()
+                done = stats["processed"]
+                elapsed = time.perf_counter() - start
+                rate = done / elapsed if elapsed > 0 else 0.0
+                frac = min(done / self.max_pages, 1.0) if self.max_pages else 0.0
+                filled = int(frac * 20)
+                bar = "#" * filled + "-" * (20 - filled)
+                eta = max(self.max_pages - done, 0) / rate if rate > 0 else 0.0
+                log.info("📊 [%s] %.0f%% %d/%d в_очереди=%d ошибок=%d %.2f стр/с ETA=%.0f c",
+                         bar, frac * 100, done, self.max_pages, stats["in_queue"],
+                         stats["failed"], rate, eta)
+        except asyncio.CancelledError:
+            return
+
+    async def on_page(self, url: str, result: dict, depth: int) -> None:
+        await super().on_page(url, result, depth)
         status = self.statuses.get(url)
         if isinstance(status, int) and 200 <= status < 300:
             self.stats.record_success(url, status)
         else:
             self.stats.record_failure(url, status)
 
+    async def on_error(self, url: str, error: str) -> None:
+        await super().on_error(url, error)
+        self.stats.record_failure(url, self.statuses.get(url, error))
+
     async def crawl_from_sitemap(self, sitemap_url: str, max_pages: int = 100,
-                                 **kwargs) -> dict:
+                                 sitemap_limit: int | None = None, **kwargs) -> dict:
+        # sitemap_limit — сколько URL взять из sitemap (None = все);
+        # max_pages — сколько всего обработать (разные понятия)
         urls = await self.sitemap.fetch_sitemap(sitemap_url)
         log.info("🗺️ из sitemap получено %d URL", len(urls))
+        if sitemap_limit is not None:
+            urls = urls[:sitemap_limit]
         if not urls:
             return {}
-        return await self.crawl(
-            start_urls=urls[:max_pages], max_pages=max_pages, **kwargs
-        )
+        return await self.crawl(start_urls=urls, max_pages=max_pages, **kwargs)
 
     def get_stats(self) -> dict:
         return self.stats.summary()
@@ -158,20 +183,45 @@ class AdvancedCrawler(StorageCrawler):
             json.dump(self.get_stats(), f, ensure_ascii=False, indent=2)
         log.info("💾 статистика сохранена в %s", filename)
 
+    @staticmethod
+    def _bar_chart(title: str, counts: dict) -> str:
+        """Простой горизонтальный bar-chart на CSS (без внешних зависимостей)."""
+        if not counts:
+            return ""
+        mx = max(counts.values()) or 1
+        bars = ""
+        for label, n in counts.items():
+            width = n / mx * 100
+            bars += (
+                f"<div class='row'><span class='lbl'>{label}</span>"
+                f"<span class='bar' style='width:{width:.0f}%'></span>"
+                f"<span class='val'>{n}</span></div>"
+            )
+        return f"<h2>{title}</h2><div class='chart'>{bars}</div>"
+
     def export_to_html_report(self, filename: str) -> None:
         s = self.get_stats()
-        def row(k, v):
-            return f"<tr><td>{k}</td><td>{v}</td></tr>"
-
-        rows = "".join(
-            row(k, json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else v)
-            for k, v in s.items()
+        scalar = {k: v for k, v in s.items() if not isinstance(v, (dict, list))}
+        table = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in scalar.items())
+        charts = (
+            self._bar_chart("Статус-коды", s.get("status_codes", {}))
+            + self._bar_chart("Топ доменов", s.get("top_domains", {}))
+        )
+        css = (
+            "body{font-family:sans-serif;margin:2rem;}"
+            "table{border-collapse:collapse;margin-bottom:1rem;}"
+            "td{border:1px solid #ccc;padding:4px 8px;}"
+            ".chart{max-width:640px;margin-bottom:1rem;}"
+            ".row{display:flex;align-items:center;margin:3px 0;}"
+            ".lbl{width:180px;font-size:13px;}.val{margin-left:6px;font-size:13px;}"
+            ".bar{height:14px;min-width:2px;background:#4c8bf5;border-radius:3px;}"
         )
         html = (
             "<!doctype html>\n<html><head><meta charset='utf-8'>"
-            "<title>Crawler report</title></head><body>"
+            f"<title>Crawler report</title><style>{css}</style></head><body>"
             "<h1>Crawler Report</h1>"
-            f"<table border='1' cellpadding='4'><tbody>{rows}</tbody></table>"
+            f"<h2>Сводка</h2><table><tbody>{table}</tbody></table>"
+            f"{charts}"
             "</body></html>\n"
         )
         with open(filename, "w", encoding="utf-8") as f:
@@ -198,7 +248,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Advanced async crawler")
     p.add_argument("--urls", nargs="+", help="стартовые URL")
     p.add_argument("--max-pages", type=int, default=20)
-    p.add_argument("--max-depth", type=int, default=1)
+    p.add_argument("--max-depth", type=int, default=0)
     p.add_argument("--output", default="day7_results.json")
     p.add_argument("--config")
     p.add_argument("--respect-robots", action="store_true")
@@ -216,8 +266,8 @@ async def run(args: argparse.Namespace) -> None:
 
     if args.config:
         crawler = AdvancedCrawler.from_config(args.config)
-        urls = crawler._cfg.get("urls", [])
-        sitemap_url = crawler._cfg.get("sitemap") or args.sitemap
+        urls = crawler.config.get("urls", [])
+        sitemap_url = crawler.config.get("sitemap") or args.sitemap
     else:
         storage = _build_storage(args.storage, args.storage_path)
         crawler = AdvancedCrawler(
@@ -228,16 +278,24 @@ async def run(args: argparse.Namespace) -> None:
             user_agent=args.user_agent,
             storage=storage,
         )
-        urls = args.urls or ["https://example.com"]
+        urls = args.urls or DAY1_URLS
         sitemap_url = args.sitemap
+
+    # фильтры берём из конфига (для CLI-режима config пуст → значения по умолчанию)
+    cfg = crawler.config
+    crawl_opts = {
+        "same_domain_only": cfg.get("same_domain_only", False),
+        "include_patterns": cfg.get("include_patterns"),
+        "exclude_patterns": cfg.get("exclude_patterns"),
+    }
 
     try:
         if sitemap_url:
             await crawler.crawl_from_sitemap(sitemap_url, max_pages=args.max_pages,
-                                             same_domain_only=False)
+                                             **crawl_opts)
         else:
             await crawler.crawl(start_urls=urls, max_pages=args.max_pages,
-                                same_domain_only=False)
+                                **crawl_opts)
 
         stats = crawler.get_stats()
         print(f"Обработано: {stats['total_pages']} страниц")

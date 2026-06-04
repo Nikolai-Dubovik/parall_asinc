@@ -1,52 +1,52 @@
 {
   "stats": {
     "requests": 7,
-    "req_per_sec": 1.5,
-    "avg_delay": 0.359,
-    "blocked_by_robots": 0
+    "req_per_sec": 3.23,
+    "avg_delay": 0.316,
+    "blocked_by_robots": 2
   },
   "pages": [
     {
-      "url": "https://example.com",
-      "title": "Example Domain",
-      "links_count": 1,
-      "text_length": 142
-    },
-    {
-      "url": "https://httpbin.org/",
-      "title": "httpbin.org",
-      "links_count": 4,
-      "text_length": 287
-    },
-    {
-      "url": "https://httpbin.org/forms/post",
-      "title": "",
+      "url": "https://pikabu.ru",
+      "title": "Горячее – самые интересные и обсуждаемые посты | Пикабу",
       "links_count": 0,
-      "text_length": 181
+      "text_length": 0
     },
     {
-      "url": "https://kennethreitz.org",
-      "title": "Kenneth Reitz",
-      "links_count": 46,
-      "text_length": 2263
+      "url": "https://edvibe.com/",
+      "title": "Edvibe",
+      "links_count": 0,
+      "text_length": 0
     },
     {
-      "url": "https://iana.org/domains/example",
-      "title": "Example Domains",
-      "links_count": 23,
-      "text_length": 1233
+      "url": "https://pikabu.ru/",
+      "title": "Горячее – самые интересные и обсуждаемые посты | Пикабу",
+      "links_count": 0,
+      "text_length": 0
     },
     {
-      "url": "https://github.com/rochacbruno/flasgger",
-      "title": "GitHub - flasgger/flasgger: Easy OpenAPI specs and Swagger UI for your Flask API · GitHub",
-      "links_count": 206,
-      "text_length": 26798
+      "url": "https://nebdeti.ru/",
+      "title": "НЭБ.Дети - детская литература от истоков до бесконечности",
+      "links_count": 0,
+      "text_length": 0
     },
     {
-      "url": "https://github.com/requests/httpbin",
-      "title": "GitHub - postmanlabs/httpbin: HTTP Request & Response Service, written in Python + Flask. · GitHub",
-      "links_count": 141,
-      "text_length": 4745
+      "url": "https://pikabu.ru/best",
+      "title": "Лучшие посты за сегодня | Пикабу",
+      "links_count": 0,
+      "text_length": 0
+    },
+    {
+      "url": "https://pikabu.ru/new",
+      "title": "Свежие посты | Пикабу",
+      "links_count": 0,
+      "text_length": 0
+    },
+    {
+      "url": "https://pikabu.ru/subs",
+      "title": "Лента подписок | Пикабу",
+      "links_count": 0,
+      "text_length": 0
     }
   ]
 }
