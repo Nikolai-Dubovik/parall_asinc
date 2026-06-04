@@ -98,13 +98,31 @@ await crawler.close()
 Storage (день 6) реализует интерфейс `DataStorage` (`save`/`close`); готовые:
 `JSONLinesStorage` (алиас `JSONStorage`), `CSVStorage`, `SQLiteStorage` (batch-вставки).
 
+## Тесты
+
+В каждой папке `dayN/` лежит `test_dayN.py` — тесты соответствуют разделу
+«Тестирование» из ТЗ этого дня. Используется stdlib `unittest`
+(`IsolatedAsyncioTestCase`), сеть замокана (`_test_helpers.py`) — тесты быстрые и
+детерминированные, без внешних зависимостей.
+
+```bash
+# отдельный день
+python day5/test_day5.py
+
+# все сразу
+python -m unittest day1.test_day1 day2.test_day2 day3.test_day3 \
+                   day4.test_day4 day5.test_day5 day6.test_day6 day7.test_day7
+```
+
 ## Структура
 
 ```
 my_work/
 ├── sample_urls.py        # общий список стартовых URL (день 1)
+├── _test_helpers.py      # фейковые HTTP-ответы для тестов
 ├── requirements.txt
-├── day1/ … day7/         # слои краулера + результаты прогонов
+├── day1/ … day7/         # слои краулера + test_dayN.py + результаты прогонов
+├── README.md
 ├── УЛУЧШЕНИЯ.md (по дням) # ревью соответствия ТЗ и предложения
 └── ОСТАЛОСЬ.md           # открытые задачи
 ```
