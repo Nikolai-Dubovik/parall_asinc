@@ -25,17 +25,32 @@ class CrawlerQueue:
         self.processed: dict[str, dict] = {}
         self.failed: dict[str, str] = {}
 
-    def add_url(self, url: str, depth: int = 0) -> bool:
+    def add_url(self, url: str, priority: int = 0, depth: int = 0) -> bool:
+        """Добавить URL в очередь.
+
+        priority — порядок выдачи: меньшее значение = выше приоритет (раньше из
+        очереди), как в asyncio.PriorityQueue. depth — глубина обхода (контроль
+        max_depth), понятие, независимое от приоритета.
+        """
         if url in self.visited:
             return False
         self.visited.add(url)
         self._depth[url] = depth
         self._counter += 1
-        # приоритет = глубина: страницы меньшей глубины обходятся раньше (BFS)
-        self._queue.put_nowait((depth, self._counter, url))
+        # _counter гарантирует FIFO при равных приоритетах
+        self._queue.put_nowait((priority, self._counter, url))
         return True
 
     async def get_next(self) -> str | None:
+        """Следующий URL или None, если очередь пуста (без блокировки)."""
+        try:
+            _, _, url = self._queue.get_nowait()
+            return url
+        except asyncio.QueueEmpty:
+            return None
+
+    async def _get_blocking(self) -> str:
+        """Внутреннее блокирующее получение для воркеров (ждёт появления URL)."""
         _, _, url = await self._queue.get()
         return url
 
@@ -127,7 +142,10 @@ class QueueCrawler(AsyncCrawler):
     async def _worker(self):
         try:
             while True:
-                url = await self.queue.get_next()
+                # воркер должен ждать появления новых ссылок, а не крутиться вхолостую
+                # на None, поэтому используем блокирующее получение (get_next теперь
+                # неблокирующий и возвращает None на пустой очереди — он для внешнего API)
+                url = await self.queue._get_blocking()
                 self.active_workers += 1
                 try:
                     # строгий лимит: не запускаем больше max_pages загрузок.
@@ -158,7 +176,9 @@ class QueueCrawler(AsyncCrawler):
                         if depth < self.max_depth:
                             for link in result["links"]:
                                 if self._allowed(link):
-                                    self.queue.add_url(link, depth=depth + 1)
+                                    # BFS: приоритет = глубина, поэтому страницы меньшей
+                                    # глубины обходятся раньше
+                                    self.queue.add_url(link, priority=depth + 1, depth=depth + 1)
                 finally:
                     self.active_workers -= 1
                     self.queue.task_done()
@@ -196,7 +216,7 @@ class QueueCrawler(AsyncCrawler):
         self.start_domains = {urlparse(u).netloc for u in start_urls}
 
         for url in start_urls:
-            self.queue.add_url(url, depth=0)
+            self.queue.add_url(url, priority=0, depth=0)
 
         start = time.perf_counter()
         workers = [asyncio.create_task(self._worker()) for _ in range(self.max_concurrent)]

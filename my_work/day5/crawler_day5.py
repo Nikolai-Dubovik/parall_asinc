@@ -126,7 +126,11 @@ class RetryStrategy:
                          attempt + 1, wait, type(e).__name__, target)
                 await asyncio.sleep(wait)
             except Exception as e:
+                # Непереповторяемые ошибки (PermanentError: 404/403/401 и пр.) —
+                # фиксируем в permanent_failures как окончательно не загруженный URL.
+                # Дублей с веткой retry_on нет: один URL проходит только через одну ветку.
                 self.stats["errors_by_type"][type(e).__name__] += 1
+                self.stats["permanent_failures"].append(target)
                 log.warning("⛔ постоянная ошибка %s: %s", type(e).__name__, target)
                 raise
         assert last_exc is not None

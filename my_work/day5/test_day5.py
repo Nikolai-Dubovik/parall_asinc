@@ -39,6 +39,11 @@ async def _noop_sleep(_):
     return None
 
 
+async def _raise_permanent(url):
+    """Корутина, всегда падающая PermanentError (имитация 404 для конкретного URL)."""
+    raise PermanentError("404")
+
+
 class TestRetryStrategy(unittest.IsolatedAsyncioTestCase):
     async def test_retry_on_timeout(self):
         """Временная ошибка (таймаут) повторяется и в итоге проходит."""
@@ -60,6 +65,16 @@ class TestRetryStrategy(unittest.IsolatedAsyncioTestCase):
                 await strat.execute_with_retry(flaky)
         self.assertEqual(flaky.calls, 1)
         self.assertEqual(strat.stats["retries"], 0)
+
+    async def test_permanent_failure_recorded(self):
+        """PermanentError без повторов попадает в permanent_failures с нужным URL."""
+        strat = RetryStrategy(max_retries=2)
+        with patch("asyncio.sleep", _noop_sleep):
+            with self.assertRaises(PermanentError):
+                await strat.execute_with_retry(_raise_permanent, "https://s/x")
+        self.assertEqual(strat.stats["retries"], 0)
+        self.assertIn("https://s/x", strat.stats["permanent_failures"])
+        self.assertEqual(len(strat.stats["permanent_failures"]), 1)
 
     async def test_exponential_backoff(self):
         """Паузы между повторами растут как factor**attempt."""

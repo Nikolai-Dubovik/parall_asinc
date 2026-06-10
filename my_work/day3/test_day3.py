@@ -37,18 +37,22 @@ class FakeCrawler(QueueCrawler):
 
 class TestQueue(unittest.IsolatedAsyncioTestCase):
     async def test_priority_order(self):
-        """get_next выдаёт URL меньшей глубины (выше приоритет) раньше."""
+        """get_next выдаёт URL с меньшим priority (выше приоритет) раньше."""
         q = CrawlerQueue()
-        q.add_url("https://s/deep", depth=2)
-        q.add_url("https://s/shallow", depth=0)
+        q.add_url("https://s/low", priority=5)
+        q.add_url("https://s/high", priority=1)
         first = await q.get_next()
-        self.assertEqual(first, "https://s/shallow")
+        self.assertEqual(first, "https://s/high")   # меньший priority — раньше
+
+    async def test_get_next_empty_returns_none(self):
+        """На пустой очереди get_next возвращает None, а не блокируется."""
+        self.assertIsNone(await CrawlerQueue().get_next())
 
     def test_no_duplicates(self):
         """Повторный add_url игнорируется, visited не растёт."""
         q = CrawlerQueue()
-        self.assertTrue(q.add_url("https://s/x", depth=0))
-        self.assertFalse(q.add_url("https://s/x", depth=0))
+        self.assertTrue(q.add_url("https://s/x", priority=0))
+        self.assertFalse(q.add_url("https://s/x", priority=0))
         self.assertEqual(len(q.visited), 1)
 
 

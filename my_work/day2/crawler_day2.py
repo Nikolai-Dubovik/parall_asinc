@@ -52,9 +52,11 @@ class AsyncCrawler:
 
 class HTMLParser:
     async def parse_html(self, html: str, url: str) -> dict:
-        # BeautifulSoup — CPU-bound и блокирует event loop, поэтому выносим в пул потоков
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self._parse_sync, html, url)
+        # Парсинг CPU-bound, но в учебном объёме выполняем синхронно прямо в корутине:
+        # это гарантированно завершается и не зависит от состояния общего
+        # ThreadPoolExecutor (раньше run_in_executor(None, ...) мог зависать при
+        # проблемах с дефолтным пулом потоков). Сигнатура остаётся async.
+        return self._parse_sync(html, url)
 
     def _parse_sync(self, html: str, url: str) -> dict:
         # пустой каркас результата — возвращается целиком или частично при ошибках
